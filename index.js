@@ -1,29 +1,32 @@
-const { MongoClient } = require("mongodb");
+const mongoose = require("mongoose");
 
-const url = "mongodb://127.0.0.1:27017";
-const client = new MongoClient(url);
+const userSchema = new mongoose.Schema({
+  name: String,
+  age: Number,
+  email: String,
+});
+
+const User = mongoose.model("User", userSchema);
 
 async function main() {
-  try {
-    await client.connect();
+  await mongoose.connect("mongodb://127.0.0.1:27017/delta_app");
 
-    console.log("MongoDB Connected Successfully!");
+  console.log("MongoDB Connected Successfully!");
 
-    const db = client.db("delta_app");
-    const users = db.collection("users");
+  const user = new User({
+    name: "Shoaib",
+    age: 23,
+    email: "shoaib@example.com",
+  });
 
-    const result = await users.insertOne({
-      name: "Shoaib",
-      age: 22,
-      email: "shoaib@example.com"
-    });
+  await user.save();
 
-    console.log("User inserted:", result.insertedId);
-  } catch (err) {
-    console.log("Error:", err.message);
-  } finally {
-    await client.close();
-  }
+  console.log("User Added Successfully!");
+
+  await mongoose.disconnect();
 }
 
-main();
+main().catch((err) => {
+  console.log("Error:", err.message);
+  mongoose.disconnect().catch(console.error);
+});
